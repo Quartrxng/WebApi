@@ -46,7 +46,7 @@ namespace WEB_API
         }
         public void Update(User user, string name, bool isAdmin, string requesterLogin, string requesterPassword)
         {
-            if (!isAdmin && user.RevokedOn != DateTime.MinValue)
+            if (!isAdmin || user.RevokedOn != DateTime.MinValue)
             {
                 throw new InvalidOperationException("Недостаточно прав или пользователь удален.");
             }
@@ -57,7 +57,7 @@ namespace WEB_API
         }
         public void Update(User user, int gender, bool isAdmin, string requesterLogin, string requesterPassword)
         {
-            if (!isAdmin && user.RevokedOn != DateTime.MinValue)
+            if (!isAdmin || user.RevokedOn != DateTime.MinValue)
             {
                 throw new InvalidOperationException("Недостаточно прав или пользователь удален.");
             }
@@ -68,7 +68,7 @@ namespace WEB_API
         }
         public void Update(User user, DateTime? birthDay, bool isAdmin, string requesterLogin, string requesterPassword)
         {
-            if (!isAdmin && user.RevokedOn != DateTime.MinValue)
+            if (!isAdmin || user.RevokedOn != DateTime.MinValue)
             {
                 throw new InvalidOperationException("Недостаточно прав или пользователь удален.");
             }
@@ -80,7 +80,7 @@ namespace WEB_API
 
         public void Update(User user, bool isAdmin, string requesterLogin, string requesterPassword) // Восстановление пользователя
         {
-            if (!isAdmin && user.RevokedOn != DateTime.MinValue)
+            if (!isAdmin || user.RevokedOn != DateTime.MinValue)
             {
                 throw new InvalidOperationException("Недостаточно прав или пользователь удален.");
             }
@@ -92,7 +92,7 @@ namespace WEB_API
 
         public void ChangePassword(User user, string password, bool isAdmin, string requesterLogin, string requesterPassword)
         {
-            if (!isAdmin && user.RevokedOn != DateTime.MinValue)
+            if (!isAdmin || user.RevokedOn != DateTime.MinValue)
             {
                 throw new InvalidOperationException("Недостаточно прав или пользователь удален.");
             }
@@ -103,7 +103,7 @@ namespace WEB_API
 
         public void ChangeLogin(User user, string login, bool isAdmin, string requesterLogin, string requesterPassword)
         {
-            if (!isAdmin && user.RevokedOn != DateTime.MinValue)
+            if (!isAdmin || user.RevokedOn != DateTime.MinValue)
             {
                 throw new InvalidOperationException("Недостаточно прав или пользователь удален.");
             }
@@ -160,11 +160,16 @@ namespace WEB_API
             }
             return filteredUsers;
         }
-        
-        public void Delete(int type, User user, string login, bool isAdmin, string requesterLogin, string requesterPassword) // type = 0 - мягкое, type = 1 полное
+
+        public void Delete(int type, string login, bool isAdmin, string requesterLogin, string requesterPassword) // type = 0 - мягкое, type = 1 полное
         {
             if (!isAdmin)
                 throw new InvalidOperationException("Недостаточно прав");
+            var user = userList.FirstOrDefault(u => u.Login == login);
+            if (user == null)
+            {
+                throw new InvalidOperationException("Нету такого пользователя");
+            }
             if (type == 0)
             {
                 user.RevokedOn = DateTime.Now;
@@ -195,7 +200,7 @@ namespace WEB_API
             get { return _password; }
             set
             {
-                if (Regex.IsMatch(value, @"^[a-zA-Z0-9]+$"))
+                if (!string.IsNullOrEmpty(value) && Regex.IsMatch(value, @"^[a-zA-Z0-9]+$"))
                     _password = value;
                 else throw new ArgumentException("Пароль должен содержать только английские буквы и цифры.");
             }
@@ -206,7 +211,7 @@ namespace WEB_API
             get { return _username; }
             set
             {
-                if (Regex.IsMatch(value, @"^[a-zA-Zа-яА-Я]+$")) _username = value;
+                if (!string.IsNullOrEmpty(value) && Regex.IsMatch(value, @"^[a-zA-Zа-яА-Я]+$")) _username = value;
                 else throw new ArgumentException("Имя должно содержать только английские и русские буквы.");
             }
         }
